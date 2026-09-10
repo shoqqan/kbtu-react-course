@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Week 2 — JavaScript Runtime and Async</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <p class="eyebrow">KBTU · React course · Week 2</p>
+    <h1>JavaScript Runtime and Async</h1>
+    <p class="lead">
+      Shoqan Tatayev. A small task runner built with closures, Promises, <code>async/await</code>
+      and <code>setTimeout</code>. Every number on this page is measured live by
+      <code>script.js</code>. Open the browser console to follow along.
+    </p>
+    <nav class="nav" aria-label="Sections">
+      <a href="#tasks">1 · Tasks</a>
+      <a href="#compare">2 · Sequential vs Concurrent</a>
+      <a href="#event-loop">3 · Event Loop Demo</a>
+    </nav>
+  </header>
+
+  <main class="sections">
+    <!-- ================= 1. Tasks ================= -->
+    <section id="tasks" class="section">
+      <h2>1 — Tasks</h2>
+      <p class="muted">
+        Each task is created with <code>createTask(name)</code>. Its counter is a private variable inside a
+        closure — the card can only reach it through <code>getCount()</code> and <code>reset()</code>.
+        Loading takes a random 500–2000&nbsp;ms and fails about 30% of the time.
+      </p>
+
+      <div id="task-cards" class="cards"></div>
+
+      <div class="toolbar">
+        <button id="run-all" class="btn btn--primary">Run All Tasks</button>
+        <button id="reset-all" class="btn">Reset All</button>
+        <span id="run-all-message" class="message"></span>
+      </div>
+      <ul id="run-all-results" class="results"></ul>
+
+      <div class="notes">
+        <h3>Notes</h3>
+        <ul>
+          <li><b>Run All</b> starts all three tasks at once with <code>tasks.map(t => t.run())</code> and waits with
+            <code>Promise.allSettled</code>. The message “All tasks finished” is shown only when every promise is
+            fulfilled <i>or</i> rejected.</li>
+          <li><code>Promise.all</code> would reject as soon as the first task fails and we would lose the other
+            results — that is why <code>allSettled</code> is used here.</li>
+          <li>Try clicking <b>Run</b> on one card several times: only that card's counter grows. Each
+            <code>createTask</code> call created its own <code>count</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= 2. Sequential vs Concurrent ================= -->
+    <section id="compare" class="section">
+      <h2>2 — Sequential vs Concurrent</h2>
+      <p class="muted">
+        First the three tasks are run one after another
+        (<code>await task1.run(); await task2.run(); await task3.run();</code>),
+        then all together with <code>Promise.allSettled(tasks.map(t => t.run()))</code>.
+        Both totals are measured with <code>performance.now()</code>.
+      </p>
+
+      <div class="toolbar">
+        <button id="compare" class="btn btn--primary">Compare sequential vs concurrent</button>
+        <span id="compare-status" class="message"></span>
+      </div>
+
+      <table id="compare-table" class="table" hidden>
+        <thead>
+          <tr><th>Task</th><th>Sequential</th><th>Concurrent</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div id="compare-explanation" class="notes" hidden></div>
+    </section>
+
+    <!-- ================= 3. Event Loop Demo ================= -->
+    <section id="event-loop" class="section">
+      <h2>3 — Event Loop Demo</h2>
+      <p class="muted">
+        The demo below contains synchronous <code>console.log</code> calls, two <code>setTimeout</code> timers,
+        two <code>Promise.resolve().then()</code> callbacks (plus one queued inside a timer) and one
+        <code>async</code> function. The prediction was written <em>before</em> running it.
+      </p>
+
+      <details class="source" open>
+        <summary>Demo source code</summary>
+<pre>function eventLoopDemo(log) {
+  log("1. script start");                                 // sync
+
+  setTimeout(() => {
+    log("7. timeout A");                                  // task
+    Promise.resolve().then(() => log("8. microtask inside timeout A"));
+  }, 0);
+
+  setTimeout(() => log("9. timeout B"), 0);               // task
+
+  Promise.resolve().then(() => log("4. promise 1"));      // microtask
+  Promise.resolve().then(() => log("5. promise 2"));      // microtask
+
+  async function asyncFn() {
+    log("2. async start");                                // sync
+    await null;                                           // ↓ microtask
+    log("6. async after await");
+  }
+  asyncFn();
+
+  log("3. script end");                                   // sync
+}</pre>
+      </details>
+
+      <div class="toolbar">
+        <button id="run-demo" class="btn btn--primary">Run Event Loop Demo</button>
+        <span id="demo-verdict" class="message"></span>
+      </div>
+
+      <div class="columns">
+        <div>
+          <h3>Predicted output</h3>
+          <ol id="predicted" class="log"></ol>
+        </div>
+        <div>
+          <h3>Actual output</h3>
+          <ol id="actual" class="log"></ol>
+        </div>
+      </div>
+
+      <div id="demo-explanation" class="notes" hidden>
+        <h3>Why this order? Call Stack → Microtask Queue → Task Queue → Event Loop</h3>
+        <ol>
+          <li><b>Call Stack.</b> <code>eventLoopDemo()</code> is pushed on the stack and runs top to bottom.
+            <code>"1. script start"</code> prints. Both <code>setTimeout</code> calls hand their callbacks to the browser's
+            timer and return at once. Both <code>.then()</code> callbacks go to the <b>microtask queue</b>.
+            <code>asyncFn()</code> is called: it runs synchronously until the first <code>await</code>, so
+            <code>"2. async start"</code> prints, and the rest of the function is scheduled as a microtask.
+            <code>"3. script end"</code> prints. <code>eventLoopDemo</code> returns — the stack is empty.</li>
+          <li><b>Microtask Queue.</b> Before touching any timer, the event loop drains every microtask in
+            order of registration: <code>"4. promise 1"</code>, <code>"5. promise 2"</code>, then the continuation of
+            <code>asyncFn</code> → <code>"6. async after await"</code>. The async continuation was queued last,
+            so it prints last even though it looks "earlier" in the code.</li>
+          <li><b>Task Queue.</b> Now the event loop takes the first timer task: <code>"7. timeout A"</code> prints and a new
+            microtask is queued from inside it.</li>
+          <li><b>Microtasks again.</b> After <em>every</em> task the microtask queue is drained before the next task,
+            so <code>"8. microtask inside timeout A"</code> prints before timeout B.</li>
+          <li><b>Next task.</b> <code>"9. timeout B"</code> prints. The 0&nbsp;ms delay never meant "immediately" —
+            it meant "as soon as the stack and the microtask queue are empty".</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>
+      References:
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop" target="_blank" rel="noopener">MDN — The event loop</a> ·
+      <a href="https://javascript.info/event-loop" target="_blank" rel="noopener">JavaScript.info — Event loop: microtasks and macrotasks</a> ·
+      <a href="https://javascript.info/closure" target="_blank" rel="noopener">JavaScript.info — Closure</a> ·
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled" target="_blank" rel="noopener">MDN — Promise.allSettled</a>
+    </p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
