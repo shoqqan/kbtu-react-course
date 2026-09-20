@@ -1,4 +1,4 @@
-import { Icon } from '../../../shared/ui/icon'
+import { Icon } from '@shared/ui/icon/icon.tsx'
 // Replace this file with your own photo (e.g. ../assets/avatar.jpg) — the import is the only change needed.
 import avatar from '../assets/avatar.svg'
 import styles from './hero.module.css'
@@ -9,7 +9,7 @@ export function Hero() {
       <div>
         <p className={styles.badge}>
           <span className={styles.dot} />
-          Open to internships
+          Open to Senior positions
         </p>
 
         <h1 className={styles.name}>
@@ -18,7 +18,7 @@ export function Hero() {
         </h1>
 
         <p className={styles.tagline}>
-          Computer Science student at KBTU. I build interfaces in React and
+          Informational Systems student at KBTU. I build interfaces in React and
           TypeScript, and I am just as happy writing the API they talk to.
         </p>
 
@@ -52,7 +52,7 @@ export function Hero() {
           <Icon name="spark" size={18} />
           <span>
             <span className={styles.chipValue}>KBTU</span>
-            <span className={styles.chipLabel}>Computer Science</span>
+            <span className={styles.chipLabel}>Informational Systems</span>
           </span>
         </div>
       </div>

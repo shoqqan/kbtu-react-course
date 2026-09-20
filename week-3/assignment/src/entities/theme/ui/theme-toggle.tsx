@@ -1,5 +1,5 @@
-import { Icon } from '../icon'
-import type { Theme } from '../../lib/use-theme.ts'
+import { Icon } from '@shared/ui/icon/icon.tsx'
+import type { Theme } from '../lib/use-theme.ts'
 import styles from './theme-toggle.module.css'
 
 type ThemeToggleProps = {

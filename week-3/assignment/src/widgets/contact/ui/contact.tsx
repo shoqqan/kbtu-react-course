@@ -1,5 +1,5 @@
-import { Icon } from '../../../shared/ui/icon'
-import type { IconName } from '../../../shared/ui/icon'
+import { Icon } from '@shared/ui/icon/icon.tsx'
+import type { IconName } from '@shared/ui/icon/icon.tsx'
 import styles from './contact.module.css'
 
 type ContactItem = {
@@ -17,7 +17,7 @@ const CONTACTS: ContactItem[] = [
     href: 'https://github.com/shoqqan',
   },
   { icon: 'pin', label: 'Based in', value: 'Almaty, Planet Earth' },
-  { icon: 'spark', label: 'Status', value: 'Open to internships' },
+  { icon: 'spark', label: 'Status', value: 'Open to Senior positions' },
 ]
 
 export function Contact() {

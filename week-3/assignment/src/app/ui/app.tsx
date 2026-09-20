@@ -1,9 +1,8 @@
-import { useTheme } from '../../shared/lib/use-theme.ts'
-import { ThemeToggle } from '../../shared/ui/theme-toggle'
-import { Hero } from '../../widgets/hero'
-import { AboutMe } from '../../widgets/about-me'
-import { Contact } from '../../widgets/contact'
+import { Hero } from '@widgets/hero'
+import { AboutMe } from '@widgets/about-me'
+import { Contact } from '@widgets/contact'
 import styles from './app.module.css'
+import {ThemeToggle, useTheme} from "@entities/theme";
 
 function App() {
   const { theme, toggleTheme } = useTheme()
